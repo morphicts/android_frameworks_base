@@ -580,6 +580,9 @@ public class DozeService extends DreamService {
         protected static final int RESULT_NEAR = 1;
         protected static final int RESULT_FAR = 2;
 
+	// TS
+	private static final float PROXIMITY_NEAR_THRESHOLD = 5.0f;
+
         private final String mTag = DozeService.this.mTag + ".ProximityCheck";
 
         private boolean mRegistered;
@@ -611,8 +614,15 @@ public class DozeService extends DreamService {
                 if (DEBUG) Log.d(mTag, "Event has no values!");
                 finishWithResult(RESULT_UNKNOWN);
             } else {
-                if (DEBUG) Log.d(mTag, "Event: value=" + event.values[0] + " max=" + mMaxRange);
-                final boolean isNear = event.values[0] < mMaxRange;
+
+		// TS fix ambient display                
+		boolean isNear = true;//event.values[0] < mMaxRange;
+	
+		if (event.values[0] >= PROXIMITY_NEAR_THRESHOLD || event.values[0] >= mMaxRange) {
+			isNear = false;
+		}
+		if (DEBUG) Log.d(mTag, "Event: value=" + event.values[0] + " max=" + mMaxRange + " isNear=" + isNear);
+
                 finishWithResult(isNear ? RESULT_NEAR : RESULT_FAR);
             }
         }

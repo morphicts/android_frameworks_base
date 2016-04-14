@@ -583,7 +583,8 @@ public class PackageInstallerService extends IPackageInstaller.Stub {
             params.installFlags |= PackageManager.INSTALL_FROM_ADB;
 
         } else {
-            mAppOps.checkPackage(callingUid, installerPackageName);
+ 	    if (mAppOps != null) // TS
+	        mAppOps.checkPackage(callingUid, installerPackageName);
 
             params.installFlags &= ~PackageManager.INSTALL_FROM_ADB;
             params.installFlags &= ~PackageManager.INSTALL_ALL_USERS;
@@ -838,7 +839,8 @@ public class PackageInstallerService extends IPackageInstaller.Stub {
     @Override
     public ParceledListSlice<SessionInfo> getMySessions(String installerPackageName, int userId) {
         mPm.enforceCrossUserPermission(Binder.getCallingUid(), userId, true, false, "getMySessions");
-        mAppOps.checkPackage(Binder.getCallingUid(), installerPackageName);
+	if (mAppOps != null) // TS
+            mAppOps.checkPackage(Binder.getCallingUid(), installerPackageName);
 
         final List<SessionInfo> result = new ArrayList<>();
         synchronized (mSessions) {
@@ -859,7 +861,8 @@ public class PackageInstallerService extends IPackageInstaller.Stub {
         final int callingUid = Binder.getCallingUid();
         mPm.enforceCrossUserPermission(callingUid, userId, true, true, "uninstall");
         if ((callingUid != Process.SHELL_UID) && (callingUid != Process.ROOT_UID)) {
-            mAppOps.checkPackage(callingUid, callerPackageName);
+		if (mAppOps != null) // TS
+            	    mAppOps.checkPackage(callingUid, callerPackageName);
         }
 
         // Check whether the caller is device owner
