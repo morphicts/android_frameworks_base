@@ -8972,8 +8972,22 @@ public final class ActivityManagerService extends ActivityManagerNative
     }
 
     private void cleanUpRemovedTaskLocked(TaskRecord tr, boolean killProcess) {
-        mRecentTasks.remove(tr);
-        tr.removedFromRecents();
+	//mRecentTasks.remove(tr);
+	//tr.removedFromRecents();
+
+	// TS
+	if (SystemProperties.get("sys.am.keeprec", "0").equals("1")) {
+		//Log.d(TAG, "cleanUpRemovedTaskLocked() kill proc, but keep thumbnail in recents: " + tr);
+	} else {
+		//Log.d(TAG, "cleanUpRemovedTaskLocked() kill proc and remove from recents: " + tr);
+		mRecentTasks.remove(tr);
+		tr.removedFromRecents();
+	}
+
+	// Never kill TS Extra
+	if (tr.toString().contains("org.morphic.ts")) 
+		killProcess = false;
+
         ComponentName component = tr.getBaseIntent().getComponent();
         if (component == null) {
             Slog.w(TAG, "No component for base intent of task: " + tr);
