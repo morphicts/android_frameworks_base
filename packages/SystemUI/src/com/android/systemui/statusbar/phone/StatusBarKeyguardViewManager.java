@@ -225,6 +225,10 @@ public class StatusBarKeyguardViewManager {
         mPhoneStatusBar.onScreenTurnedOff();
     }
 
+    public void onScreenTurningOff() {
+        mPhoneStatusBar.onScreenTurningOff();
+    }
+
     public void notifyDeviceWakeUpRequested() {
         mDeviceWillWakeUp = !mDeviceInteractive;
     }

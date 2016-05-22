@@ -95,4 +95,6 @@ oneway interface IKeyguardService {
      */
     void onActivityDrawn();
     void showKeyguard();
+
+	void onScreenTurningOff();
 }

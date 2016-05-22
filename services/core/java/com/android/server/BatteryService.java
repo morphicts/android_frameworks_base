@@ -51,6 +51,7 @@ import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UEventObserver;
 import android.os.UserHandle;
+import android.os.SystemProperties;
 import android.provider.Settings;
 import android.util.EventLog;
 import android.util.Slog;
@@ -1123,7 +1124,7 @@ public final class BatteryService extends SystemService {
                     // Battery is full or charging and nearly full
                     mBatteryLight.setColor(mBatteryFullARGB);
                 } else {
-                    if (isHvdcpPresent()) {
+                    if (isHvdcpPresent() && SystemProperties.get("persist.sys.ts.nochgp_en_b", "0").equals("0")) {
                         // Blinking orange if HVDCP charger
                         mBatteryLight.setFlashing(mBatteryMediumARGB, Light.LIGHT_FLASH_TIMED,
                                 mBatteryLedOn, mBatteryLedOn);

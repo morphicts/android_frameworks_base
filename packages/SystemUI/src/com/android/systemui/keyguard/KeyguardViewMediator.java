@@ -1914,6 +1914,10 @@ public class KeyguardViewMediator extends SystemUI {
     public ViewMediatorCallback getViewMediatorCallback() {
         return mViewMediatorCallback;
     }
+	
+	public void onScreenTurningOff() {
+		mStatusBarKeyguardViewManager.onScreenTurningOff();
+	}
 
     @Override
     public void dump(FileDescriptor fd, PrintWriter pw, String[] args) {

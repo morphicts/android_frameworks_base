@@ -217,6 +217,15 @@ import static com.android.systemui.statusbar.phone.BarTransitions.MODE_WARNING;
 import cyanogenmod.providers.CMSettings;
 import cyanogenmod.themes.IThemeService;
 
+import android.view.Surface;
+import android.view.SurfaceControl;
+import android.renderscript.Allocation;
+import android.renderscript.Allocation.MipmapControl;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicBlur;
+import android.os.SystemProperties;
+
 public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         DragDownHelper.DragDownCallback, ActivityStarter, OnUnlockMethodChangedListener,
         HeadsUpManager.OnHeadsUpChangedListener {
@@ -424,6 +433,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
     private IThemeService mThemeService;
     private long mLastThemeChangeTime = 0;
+
+    private Bitmap mBlurredImage = null;
 
     Runnable mLongPressBrightnessChange = new Runnable() {
         @Override
@@ -2178,6 +2189,90 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         }
     };
 
+	private static final int MAX_BLUR_WIDTH = 900;
+    private static final int MAX_BLUR_HEIGHT = 1600;
+
+	public void onScreenTurningOff() {
+
+		Log.v(TAG, "onScreenTurningOff() +");
+
+		int blurRadius = 25;
+		boolean seeThrough = SystemProperties.get("persist.sys.ts.lsst_en_b", "0").equals("1");
+		Bitmap bmp = null;
+
+        if (seeThrough) 
+		{
+			String blurRadiusStr = SystemProperties.get("persist.sys.ts.lsblurrad", "25");
+			try {
+				  blurRadius = Integer.parseInt(blurRadiusStr);
+			} catch (Exception e) {
+				  blurRadius = 25;
+			}
+
+            WindowManager wm = (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
+            Display display = wm.getDefaultDisplay();
+            Point point = new Point();
+            display.getRealSize(point);
+            int rotation = display.getRotation();
+            boolean reverse = rotation == Surface.ROTATION_90
+                    || rotation == Surface.ROTATION_270;
+            /* Limit max screenshot capture layer to 22000.
+               Prevents status bar and navigation bar from being captured. */
+            bmp = SurfaceControl.screenshot(new Rect(),
+                    reverse ? point.y : point.x, reverse ? point.x : point.y,
+                    0, 22000, false, Surface.ROTATION_0);
+            if (bmp != null) {
+                // scale image if its too large
+                if (bmp.getWidth() > MAX_BLUR_WIDTH) {
+                    Bitmap tmpBmp = bmp.createScaledBitmap(
+                            bmp, MAX_BLUR_WIDTH, MAX_BLUR_HEIGHT, true);
+					bmp.recycle();
+					bmp = tmpBmp;
+                }
+            }
+        }
+
+		if (bmp != null) 
+		{
+			// Sanity check
+			if (blurRadius < 1) 
+				blurRadius = 1;
+			else if (blurRadius > 250) 
+				blurRadius = 250;
+
+			mBlurredImage = bmp;
+			while (blurRadius > 0) {
+				int blurRadiusOne = (blurRadius > 25) ? 25 : blurRadius;
+	            mBlurredImage = blurBitmap(mBlurredImage, blurRadiusOne);
+ 				blurRadius -= blurRadiusOne;
+			}
+        } else
+            mBlurredImage = null;
+
+		Log.v(TAG, "onScreenTurningOff() -");
+	}
+
+	private Bitmap blurBitmap(Bitmap bmp, int radius) {
+
+        Bitmap out = Bitmap.createBitmap(bmp);
+        RenderScript rs = RenderScript.create(mContext);
+
+        Allocation input = Allocation.createFromBitmap(
+                rs, bmp, MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT);
+        Allocation output = Allocation.createTyped(rs, input.getType());
+
+        ScriptIntrinsicBlur script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+        script.setInput(input);
+        script.setRadius(radius);
+        script.forEach(output);
+
+        output.copyTo(out);
+
+        rs.destroy();
+
+        return out;
+    }
+
     /**
      * Refresh or remove lockscreen artwork from media metadata.
      */
@@ -2219,6 +2314,11 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                     && mMediaController.getPlaybackState() != null
                     && mMediaController.getPlaybackState().getState()
                             == PlaybackState.STATE_PLAYING);
+        }
+
+        // apply blur lockscreen image
+        if (backdropBitmap == null && !mLiveLockScreenController.isShowingLiveLockScreenView()) {
+            backdropBitmap = mBlurredImage;
         }
 
         // apply user lockscreen image
