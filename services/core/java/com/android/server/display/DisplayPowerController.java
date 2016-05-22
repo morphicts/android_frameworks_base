@@ -47,6 +47,14 @@ import android.view.WindowManagerPolicy;
 
 import java.io.PrintWriter;
 
+import com.android.internal.policy.IKeyguardService;
+import com.android.server.policy.keyguard.KeyguardServiceWrapper;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.os.UserHandle;
+
 /**
  * Controls the power state of the display.
  *
@@ -259,6 +267,23 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
     private ObjectAnimator mColorFadeOffAnimator;
     private RampAnimator<DisplayPowerState> mScreenBrightnessRampAnimator;
 
+	// Lock screen blur    
+    public static final String KEYGUARD_PACKAGE = "com.android.systemui";
+    public static final String KEYGUARD_CLASS = "com.android.systemui.keyguard.KeyguardService";
+    private KeyguardServiceWrapper mKeyguardService;
+    private final ServiceConnection mKeyguardConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mKeyguardService = new KeyguardServiceWrapper(mContext,
+                    IKeyguardService.Stub.asInterface(service));
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mKeyguardService = null;
+        }
+    };
+
     /**
      * Creates the display power controller.
      */
@@ -380,6 +405,11 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
             }
         }
 
+		Intent intent = new Intent();
+        intent.setClassName(KEYGUARD_PACKAGE,
+                KEYGUARD_CLASS);
+        mContext.bindServiceAsUser(intent, mKeyguardConnection,
+                Context.BIND_AUTO_CREATE, UserHandle.OWNER);
     }
 
     /**
@@ -432,6 +462,12 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
             }
 
             if (changed && !mPendingRequestChangedLocked) {
+		
+				if ((mKeyguardService != null && !mKeyguardService.isShowing())
+                        && request.policy == DisplayPowerRequest.POLICY_OFF) {
+					mKeyguardService.onScreenTurningOff();
+				}
+
                 mPendingRequestChangedLocked = true;
                 sendUpdatePowerStateLocked();
             }

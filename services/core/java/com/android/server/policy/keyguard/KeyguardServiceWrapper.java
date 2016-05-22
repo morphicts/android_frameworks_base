@@ -253,4 +253,12 @@ public class KeyguardServiceWrapper implements IKeyguardService {
             Slog.w(TAG, "Remote Exception", e);
         }
     }
+
+	public void onScreenTurningOff() {
+        try {
+            mService.onScreenTurningOff();
+        } catch (RemoteException e) {
+            Slog.w(TAG, "Remote Exception", e);
+        }
+    }
 }
