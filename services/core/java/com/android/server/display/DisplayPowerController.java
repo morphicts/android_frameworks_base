@@ -407,8 +407,8 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
             }
         }
 
-		Thread thread = new Thread(mDelayedKeyguardInitRunnable);
-   		thread.start();
+		Thread delayedKeyguardInitThread = new Thread(mDelayedKeyguardInitRunnable);
+   		delayedKeyguardInitThread.start();
     }
 
     private Runnable mDelayedKeyguardInitRunnable = new Runnable() {
