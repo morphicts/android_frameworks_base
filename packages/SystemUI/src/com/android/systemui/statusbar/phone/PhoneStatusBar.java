@@ -4896,7 +4896,9 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
     public void onUnlockHintStarted() {
         mKeyguardIndicationController.showTransientIndication(R.string.keyguard_unlock,
-                KeyguardIndicationController.IndicationDirection.UP);
+                mNotificationPanel.shouldShowScreenOnHints() ?
+                KeyguardIndicationController.IndicationDirection.UP :
+                KeyguardIndicationController.IndicationDirection.NONE);
     }
 
     public void onLlsHintStarted() {
