@@ -3548,7 +3548,10 @@ public final class PowerManagerService extends SystemService
 
             TelephonyManager tm = (TelephonyManager)mContext.getSystemService(
                     Context.TELEPHONY_SERVICE);
-            boolean hasIncomingCall = tm.getCallState() == TelephonyManager.CALL_STATE_RINGING;
+            //boolean hasIncomingCall = tm.getCallState() == TelephonyManager.CALL_STATE_RINGING;
+
+			// Test proximity always!
+            boolean hasIncomingCall = false;//tm.getCallState() == TelephonyManager.CALL_STATE_RINGING;
 
             if (mProximityWakeSupported && mProximityWakeEnabled && mProximitySensor != null
                     && !hasIncomingCall) {
@@ -3601,7 +3604,10 @@ public final class PowerManagerService extends SystemService
 
         @Override // Binder call
         public void wakeUp(long eventTime, String reason, String opPackageName) {
-            wakeUp(eventTime, reason, opPackageName, false);
+            //wakeUp(eventTime, reason, opPackageName, false);
+
+			// Always check proximity!
+			wakeUpWithProximityCheck(eventTime, reason, opPackageName);
         }
 
         @Override // Binder call

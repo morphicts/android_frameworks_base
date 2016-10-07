@@ -1343,7 +1343,11 @@ public class NotificationManagerService extends SystemService {
             mAudioManagerInternal = getLocalService(AudioManagerInternal.class);
             mZenModeHelper.onSystemReady();
 
-            updateDisableDucking();
+			// Reload settings
+			mSettingsObserver.update(null);
+            mSpamFilterObserver.update(null);
+
+//            updateDisableDucking();
         } else if (phase == SystemService.PHASE_THIRD_PARTY_APPS_CAN_START) {
             // This observer will force an update when observe is called, causing us to
             // bind to listener services.
@@ -2243,6 +2247,9 @@ public class NotificationManagerService extends SystemService {
                     pw.println("  mDisableNotificationEffects=" + mDisableNotificationEffects);
                     pw.println("  mCallState=" + callStateToString(mCallState));
                     pw.println("  mSystemReady=" + mSystemReady);
+                    pw.println("  mDisableDuckingWhileMedia=" + mDisableDuckingWhileMedia);
+                    pw.println("  mActiveMedia=" + mActiveMedia);
+                    pw.println("  mAudioManager.isMusicActive()=" + mAudioManager.isMusicActive());
                 }
                 pw.println("  mArchive=" + mArchive.toString());
                 Iterator<StatusBarNotification> iter = mArchive.descendingIterator();
@@ -2734,6 +2741,9 @@ public class NotificationManagerService extends SystemService {
                 soundUri = notification.sound;
                 hasValidSound = (soundUri != null);
             }
+
+			// TS: Seems to be more realible way to check music playing state.
+			mActiveMedia = mAudioManager.isMusicActive();
 
             if (hasValidSound && (!mDisableDuckingWhileMedia || !mActiveMedia)) {
                 boolean looping =

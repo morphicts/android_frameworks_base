@@ -288,6 +288,7 @@ public class LegacyCameraDevice implements AutoCloseable {
      *          on success.
      */
     public int configureOutputs(List<Surface> outputs) {
+
         List<Pair<Surface, Size>> sizedSurfaces = new ArrayList<>();
         if (outputs != null) {
             for (Surface output : outputs) {

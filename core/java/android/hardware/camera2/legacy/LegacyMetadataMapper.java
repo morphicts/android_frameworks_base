@@ -339,6 +339,10 @@ public class LegacyMetadataMapper {
             }
         }
 
+		// TS
+        appendStreamConfig(availableStreamConfigs,
+                HAL_PIXEL_FORMAT_RGBA_8888, p.getSupportedVideoSizes());
+
         appendStreamConfig(availableStreamConfigs,
                 HAL_PIXEL_FORMAT_BLOB, p.getSupportedPictureSizes());
         /*
