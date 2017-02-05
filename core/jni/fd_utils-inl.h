@@ -61,6 +61,7 @@ static const char* kPathWhitelist[] = {
   "@netlink@",
   "/system/framework/org.cyanogenmod.platform-res.apk",
   "/proc/ged",
+  "@unnamed@"
 #ifdef PATH_WHITELIST_EXTRA_H
 PATH_WHITELIST_EXTRA_H
 #endif
@@ -320,8 +321,9 @@ class FileDescriptorInfo {
     size_t path_len = addr_len - offsetof(struct sockaddr_un, sun_path);
     // This is an unnamed local socket, we do not accept it.
     if (path_len == 0) {
-      ALOGE("Unsupported AF_UNIX socket (fd=%d) with empty path.", fd);
-      return false;
+      ALOGE("Supported AF_UNIX socket (fd=%d) with empty path.", fd);
+      (*result) = "@unnamed@";
+      return true;
     }
 
     // This is a local socket with an abstract address, we do not accept it.

@@ -774,18 +774,17 @@ bool BootAnimation::movie()
         */
         GLint mMaxTextureSize;
         bool needSaveMem = false;
-        GLuint mTextureid;
+        GLuint mTextureid = 0;
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &mMaxTextureSize);
-        //ALOGD("freemem:%ld, %d", getFreeMemory(), mMaxTextureSize);
-        if(getFreeMemory() < mMaxTextureSize * mMaxTextureSize * fcount / 1024 || noTextureCache) {
+        ALOGI("freemem:%ld, %d; noTextureCache %d", getFreeMemory(), mMaxTextureSize, noTextureCache);
+        /*if(getFreeMemory() < mMaxTextureSize * mMaxTextureSize * fcount / 1024 || noTextureCache) {
             ALOGD("Use save memory method, maybe small fps in actual.");
             needSaveMem = true;
             glGenTextures(1, &mTextureid);
             glBindTexture(GL_TEXTURE_2D, mTextureid);
             glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        }
+        }*/
 
         for (int r=0 ; !part.count || r<part.count ; r++) {
             // Exit any non playuntil complete parts immediately
